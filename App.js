@@ -8,6 +8,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { store } from "./store";
 import HomeScreen from "./screens/HomeScreen";
 import MapScreen from "./screens/MapScreen";
+import "./gesture-handler";
 
 export default function App() {
   const Stack = createNativeStackNavigator();
