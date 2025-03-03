@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import MapView, { Marker } from "react-native-maps";
 import tw from "twrnc";
 import { useDispatch, useSelector } from "react-redux";
@@ -19,7 +19,7 @@ const Map = () => {
   const dispatch = useDispatch(setTravelTimeInformation);
 
   useEffect(() => {
-    if (!origin || !destination) return;
+    if (!origin || !destination || !mapRef.current) return;
 
     setTimeout(() => {
       mapRef.current?.fitToSuppliedMarkers(["origin", "destination"], {
@@ -31,7 +31,7 @@ const Map = () => {
         },
       });
     }, 1000); // Delay for smooth animation
-  }, [origin, destination]);
+  }, [origin, destination, mapRef.current]);
 
   useEffect(() => {
     if (!origin || !destination || !GOOGLE_MAPS_APIKEY) return;
@@ -72,10 +72,12 @@ const Map = () => {
           apikey={GOOGLE_MAPS_APIKEY}
           strokeWidth={3}
           strokeColor="black"
+          resetOnChange={false}
         />
       )}
       {origin?.location && (
         <Marker
+          key={`${origin.location.lat}-${origin.location.lng}`}
           coordinate={{
             latitude: origin.location.lat,
             longitude: origin.location.lng,
@@ -87,6 +89,7 @@ const Map = () => {
       )}
       {destination?.location && (
         <Marker
+          key={`${destination.location.lat}-${destination.location.lng}`}
           coordinate={{
             latitude: destination.location.lat,
             longitude: destination.location.lng,
