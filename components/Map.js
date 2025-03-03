@@ -2,22 +2,27 @@ import { StyleSheet, Text, View } from "react-native";
 import React, { useEffect, useRef } from "react";
 import MapView, { Marker } from "react-native-maps";
 import tw from "twrnc";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import MapViewDirections from "react-native-maps-directions";
 
-import { selectDestination, selectOrigin } from "../slices/navSlice";
+import {
+  selectDestination,
+  selectOrigin,
+  setTravelTimeInformation,
+} from "../slices/navSlice";
 import { GOOGLE_MAPS_APIKEY } from "@env";
 
 const Map = () => {
   const origin = useSelector(selectOrigin);
   const destination = useSelector(selectDestination);
   const mapRef = useRef(null);
+  const dispatch = useDispatch(setTravelTimeInformation);
 
   useEffect(() => {
     if (!origin || !destination) return;
 
     setTimeout(() => {
-      mapRef.current.fitToSuppliedMarkers(["origin", "destination"], {
+      mapRef.current?.fitToSuppliedMarkers(["origin", "destination"], {
         edgePadding: {
           top: 50,
           right: 50,
@@ -27,6 +32,26 @@ const Map = () => {
       });
     }, 1000); // Delay for smooth animation
   }, [origin, destination]);
+
+  useEffect(() => {
+    if (!origin || !destination || !GOOGLE_MAPS_APIKEY) return;
+
+    const getTravelTime = async () => {
+      try {
+        const originCoords = `${origin.location.lat},${origin.location.lng}`;
+        const destinationCoords = `${destination.location.lat},${destination.location.lng}`;
+        const url = `https://maps.googleapis.com/maps/api/distancematrix/json?destinations=${destinationCoords}&origins=${originCoords}&units=imperial&key=${GOOGLE_MAPS_APIKEY}`;
+
+        const data = await fetch(url).then((res) => res.json());
+
+        dispatch(setTravelTimeInformation(data.rows[0].elements[0]));
+      } catch (error) {
+        console.log("error", error);
+      }
+    };
+
+    void getTravelTime();
+  }, [origin, destination, GOOGLE_MAPS_APIKEY]);
 
   return (
     <MapView
